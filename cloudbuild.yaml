@@ -66,28 +66,28 @@ steps:
         MODEL_ID=$(gcloud ai models upload \
           --region="${_REGION}" \
           --display-name="${_VERTEX_MODEL_NAME}-${SHORT_SHA}" \
-          --container-image-uri="$IMAGE_URI" \
+          --container-image-uri="$$IMAGE_URI" \
           --container-ports=8080 \
           --container-health-route=/health \
           --container-predict-route=/predict \
-          --container-env-vars=APP_NAME="${_IMAGE_NAME}",GCP_PROJECT_ID="${PROJECT_ID}",VERTEX_LOCATION="${_REGION}",VERTEX_EMBEDDING_MODEL="${_VERTEX_EMBEDDING_MODEL}",VERTEX_EMBEDDING_DIMENSIONS="${_VERTEX_EMBEDDING_DIMENSIONS}",VERTEX_GENERATIVE_MODEL="${_VERTEX_GENERATIVE_MODEL}",PINECONE_API_KEY="$PINECONE_API_KEY",PINECONE_HOST="${_PINECONE_HOST}",PINECONE_INDEX="${_PINECONE_INDEX}",PINECONE_NAMESPACE="${_PINECONE_NAMESPACE}",MEMORY_NAMESPACE="${_MEMORY_NAMESPACE}" \
-          --format="value(name)" | awk -F/ '{print $NF}')
+          --container-env-vars=APP_NAME="${_IMAGE_NAME}",GCP_PROJECT_ID="${PROJECT_ID}",VERTEX_LOCATION="${_REGION}",VERTEX_EMBEDDING_MODEL="${_VERTEX_EMBEDDING_MODEL}",VERTEX_EMBEDDING_DIMENSIONS="${_VERTEX_EMBEDDING_DIMENSIONS}",VERTEX_GENERATIVE_MODEL="${_VERTEX_GENERATIVE_MODEL}",PINECONE_API_KEY="$$PINECONE_API_KEY",PINECONE_HOST="${_PINECONE_HOST}",PINECONE_INDEX="${_PINECONE_INDEX}",PINECONE_NAMESPACE="${_PINECONE_NAMESPACE}",MEMORY_NAMESPACE="${_MEMORY_NAMESPACE}" \
+          --format="value(name)" | awk -F/ '{print $$NF}')
 
         ENDPOINT_ID=$(gcloud ai endpoints list \
           --region="${_REGION}" \
           --filter="displayName=${_VERTEX_ENDPOINT_NAME}" \
-          --format="value(name)" | awk -F/ 'NR==1{print $NF}')
+          --format="value(name)" | awk -F/ 'NR==1{print $$NF}')
 
-        if [[ -z "$ENDPOINT_ID" ]]; then
+        if [[ -z "$$ENDPOINT_ID" ]]; then
           ENDPOINT_ID=$(gcloud ai endpoints create \
             --region="${_REGION}" \
             --display-name="${_VERTEX_ENDPOINT_NAME}" \
-            --format="value(name)" | awk -F/ '{print $NF}')
+            --format="value(name)" | awk -F/ '{print $$NF}')
         fi
 
-        gcloud ai endpoints deploy-model "$ENDPOINT_ID" \
+        gcloud ai endpoints deploy-model "$$ENDPOINT_ID" \
           --region="${_REGION}" \
-          --model="$MODEL_ID" \
+          --model="$$MODEL_ID" \
           --display-name="${_VERTEX_MODEL_NAME}-deployed-${SHORT_SHA}" \
           --machine-type=n1-standard-2 \
           --min-replica-count=1 \
