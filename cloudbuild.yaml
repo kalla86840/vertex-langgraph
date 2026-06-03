@@ -63,7 +63,7 @@ steps:
         set -euo pipefail
         IMAGE_URI="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}"
 
-        MODEL_ID=$(gcloud ai models upload \
+        MODEL_RESOURCE=$(gcloud ai models upload \
           --region="${_REGION}" \
           --display-name="${_VERTEX_MODEL_NAME}-${SHORT_SHA}" \
           --container-image-uri="$$IMAGE_URI" \
@@ -71,11 +71,16 @@ steps:
           --container-health-route=/health \
           --container-predict-route=/predict \
           --container-env-vars=APP_NAME="${_IMAGE_NAME}",GCP_PROJECT_ID="${PROJECT_ID}",VERTEX_LOCATION="${_REGION}",VERTEX_EMBEDDING_MODEL="${_VERTEX_EMBEDDING_MODEL}",VERTEX_EMBEDDING_DIMENSIONS="${_VERTEX_EMBEDDING_DIMENSIONS}",VERTEX_GENERATIVE_MODEL="${_VERTEX_GENERATIVE_MODEL}",PINECONE_API_KEY="$$PINECONE_API_KEY",PINECONE_HOST="${_PINECONE_HOST}",PINECONE_INDEX="${_PINECONE_INDEX}",PINECONE_NAMESPACE="${_PINECONE_NAMESPACE}",MEMORY_NAMESPACE="${_MEMORY_NAMESPACE}" \
-          --format="value(name)" | awk -F/ '{print $$NF}')
+          --format="value(model)")
+        MODEL_ID="$${MODEL_RESOURCE##*/}"
+        if [[ -z "$$MODEL_ID" ]]; then
+          echo "Vertex model upload did not return a model resource."
+          exit 1
+        fi
 
         ENDPOINT_ID=$(gcloud ai endpoints list \
           --region="${_REGION}" \
-          --filter="displayName=${_VERTEX_ENDPOINT_NAME}" \
+          --filter="display_name=${_VERTEX_ENDPOINT_NAME}" \
           --format="value(name)" | awk -F/ 'NR==1{print $$NF}')
 
         if [[ -z "$$ENDPOINT_ID" ]]; then
