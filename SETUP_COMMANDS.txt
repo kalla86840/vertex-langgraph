@@ -1,0 +1,5 @@
+gcloud auth login
+gcloud config set project YOUR_GCP_PROJECT_ID
+gcloud services enable cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com secretmanager.googleapis.com
+echo -n "YOUR_PINECONE_API_KEY" | gcloud secrets create PINECONE_API_KEY --data-file=-
+gcloud builds submit --config cloudbuild.yaml

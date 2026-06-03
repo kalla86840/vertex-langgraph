@@ -1,0 +1,100 @@
+substitutions:
+  _REGION: us-central1
+  _ARTIFACT_REPOSITORY: vertex-pinecone
+  _IMAGE_NAME: vertex-pinecone-rag-chat
+  _VERTEX_ENDPOINT_NAME: vertex-pinecone-rag-chat
+  _VERTEX_MODEL_NAME: vertex-pinecone-rag-chat-model
+  _PINECONE_HOST: https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io
+  _PINECONE_INDEX: news-demo
+  _PINECONE_NAMESPACE: news
+  _MEMORY_NAMESPACE: memory
+  _VERTEX_EMBEDDING_MODEL: gemini-embedding-001
+  _VERTEX_EMBEDDING_DIMENSIONS: "1024"
+  _VERTEX_GENERATIVE_MODEL: gemini-2.5-flash
+
+steps:
+  - name: python:3.11-slim
+    id: test
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        python -m pytest -q
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    id: ensure-artifact-registry
+    entrypoint: bash
+    args:
+      - -c
+      - |
+        gcloud artifacts repositories describe "${_ARTIFACT_REPOSITORY}" --location="${_REGION}" || \
+        gcloud artifacts repositories create "${_ARTIFACT_REPOSITORY}" \
+          --repository-format=docker \
+          --location="${_REGION}" \
+          --description="Vertex Pinecone chatbot and assistant containers"
+
+  - name: gcr.io/cloud-builders/docker
+    id: build
+    args:
+      - build
+      - -t
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}"
+      - .
+
+  - name: gcr.io/cloud-builders/docker
+    id: push
+    args:
+      - push
+      - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}"
+
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    id: upload-and-deploy-vertex-model
+    entrypoint: bash
+    secretEnv:
+      - PINECONE_API_KEY
+    args:
+      - -c
+      - |
+        set -euo pipefail
+        IMAGE_URI="${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}"
+
+        MODEL_ID=$(gcloud ai models upload \
+          --region="${_REGION}" \
+          --display-name="${_VERTEX_MODEL_NAME}-${SHORT_SHA}" \
+          --container-image-uri="$IMAGE_URI" \
+          --container-ports=8080 \
+          --container-health-route=/health \
+          --container-predict-route=/predict \
+          --container-env-vars=APP_NAME="${_IMAGE_NAME}",GCP_PROJECT_ID="${PROJECT_ID}",VERTEX_LOCATION="${_REGION}",VERTEX_EMBEDDING_MODEL="${_VERTEX_EMBEDDING_MODEL}",VERTEX_EMBEDDING_DIMENSIONS="${_VERTEX_EMBEDDING_DIMENSIONS}",VERTEX_GENERATIVE_MODEL="${_VERTEX_GENERATIVE_MODEL}",PINECONE_API_KEY="$PINECONE_API_KEY",PINECONE_HOST="${_PINECONE_HOST}",PINECONE_INDEX="${_PINECONE_INDEX}",PINECONE_NAMESPACE="${_PINECONE_NAMESPACE}",MEMORY_NAMESPACE="${_MEMORY_NAMESPACE}" \
+          --format="value(name)" | awk -F/ '{print $NF}')
+
+        ENDPOINT_ID=$(gcloud ai endpoints list \
+          --region="${_REGION}" \
+          --filter="displayName=${_VERTEX_ENDPOINT_NAME}" \
+          --format="value(name)" | awk -F/ 'NR==1{print $NF}')
+
+        if [[ -z "$ENDPOINT_ID" ]]; then
+          ENDPOINT_ID=$(gcloud ai endpoints create \
+            --region="${_REGION}" \
+            --display-name="${_VERTEX_ENDPOINT_NAME}" \
+            --format="value(name)" | awk -F/ '{print $NF}')
+        fi
+
+        gcloud ai endpoints deploy-model "$ENDPOINT_ID" \
+          --region="${_REGION}" \
+          --model="$MODEL_ID" \
+          --display-name="${_VERTEX_MODEL_NAME}-deployed-${SHORT_SHA}" \
+          --machine-type=n1-standard-2 \
+          --min-replica-count=1 \
+          --max-replica-count=1 \
+          --traffic-split=0=100
+
+availableSecrets:
+  secretManager:
+    - versionName: projects/${PROJECT_ID}/secrets/PINECONE_API_KEY/versions/latest
+      env: PINECONE_API_KEY
+
+images:
+  - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}"

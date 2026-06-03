@@ -1,0 +1,14 @@
+project:
+  name: vertex-pinecone-rag-chat
+  region: us-central1
+vertex:
+  endpoint_name: vertex-pinecone-rag-chat
+  model_name: vertex-pinecone-rag-chat-model
+  embedding_model: gemini-embedding-001
+  embedding_dimensions: 1024
+  generative_model: gemini-2.5-flash
+pinecone:
+  index: news-demo
+  namespace: news
+  memory_namespace: memory
+  host: https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io
