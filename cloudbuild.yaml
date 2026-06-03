@@ -12,6 +12,9 @@ substitutions:
   _VERTEX_EMBEDDING_DIMENSIONS: "1024"
   _VERTEX_GENERATIVE_MODEL: gemini-2.5-flash
 
+options:
+  logging: CLOUD_LOGGING_ONLY
+
 steps:
   - name: python:3.11-slim
     id: test
