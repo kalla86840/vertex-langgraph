@@ -7,7 +7,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
-    app_name: str = Field(default="vertex-pinecone-rag-chat", alias="APP_NAME")
+    app_name: str = Field(default="vertex-pinecone-mcp", alias="APP_NAME")
     gcp_project_id: str = Field(default="", alias="GCP_PROJECT_ID")
     pinecone_api_key: str = Field(default="", alias="PINECONE_API_KEY")
     pinecone_host: AnyHttpUrl = Field(

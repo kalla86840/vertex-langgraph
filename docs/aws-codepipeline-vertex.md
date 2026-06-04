@@ -34,6 +34,13 @@ The GCP service account needs these permissions in the target GCP project:
 - Vertex AI Administrator, or enough access to upload models and deploy endpoints
 - Service Account User if your Vertex deployment requires attaching a runtime service account
 
+The default Vertex endpoint and image names are MCP-specific:
+
+```text
+vertex-pinecone-mcp
+vertex-pinecone-mcp-model
+```
+
 ## 3. Deploy the AWS pipeline stack
 
 ```powershell

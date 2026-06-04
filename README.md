@@ -1,8 +1,8 @@
-# Vertex Pinecone RAG for Chatbots and Assistants
+# Vertex Pinecone MCP
 
 This repository deploys a Google Cloud Vertex AI custom-container endpoint for
-Pinecone-backed chatbots and assistants. It uses Vertex AI embeddings for
-retrieval and Gemini on Vertex AI for grounded answer generation.
+Pinecone-backed MCP inference, chatbots, and assistants. It uses Vertex AI
+embeddings for retrieval and Gemini on Vertex AI for grounded answer generation.
 
 ## Capabilities
 
@@ -32,6 +32,53 @@ gcloud builds submit --config cloudbuild.yaml
 
 The build tests the app, builds the container, pushes it to Artifact Registry,
 uploads a Vertex model, creates or reuses the endpoint, and deploys the model.
+The default online endpoint name is `vertex-pinecone-mcp`.
+
+## Required Google Cloud IAM
+
+For Cloud Build deployment, grant the trigger service account the roles needed
+to build, push images, read the Pinecone secret, and deploy Vertex AI models.
+For the current project, the trigger service account shown in the console is:
+
+```text
+683447325858-compute@developer.gserviceaccount.com
+```
+
+```bash
+PROJECT_ID="inner-domain-397315"
+BUILD_SA="683447325858-compute@developer.gserviceaccount.com"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$BUILD_SA" \
+  --role="roles/cloudbuild.builds.builder"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$BUILD_SA" \
+  --role="roles/artifactregistry.admin"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$BUILD_SA" \
+  --role="roles/aiplatform.admin"
+
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="serviceAccount:$BUILD_SA" \
+  --role="roles/secretmanager.secretAccessor"
+```
+
+To test or call the endpoint from the Vertex UI, a webpage backend, or another
+client, the caller needs `aiplatform.endpoints.predict`. The practical project
+role is Vertex AI User:
+
+```bash
+gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+  --member="user:YOUR_EMAIL@gmail.com" \
+  --role="roles/aiplatform.user"
+```
+
+For a future webpage backend, grant the same role to the backend service
+account instead of a user.
+
+The same commands are kept in `docs/gcp-iam-permissions.md` for quick reuse.
 
 ## Local Development
 

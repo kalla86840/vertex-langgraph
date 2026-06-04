@@ -26,13 +26,13 @@ Parameters:
     Default: vertex-pinecone
   ImageName:
     Type: String
-    Default: vertex-pinecone-rag-chat
+    Default: vertex-pinecone-mcp
   VertexEndpointName:
     Type: String
-    Default: vertex-pinecone-rag-chat
+    Default: vertex-pinecone-mcp
   VertexModelName:
     Type: String
-    Default: vertex-pinecone-rag-chat-model
+    Default: vertex-pinecone-mcp-model
   PineconeHost:
     Type: String
     Default: https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io

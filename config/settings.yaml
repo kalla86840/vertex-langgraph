@@ -1,9 +1,9 @@
 project:
-  name: vertex-pinecone-rag-chat
+  name: vertex-pinecone-mcp
   region: us-central1
 vertex:
-  endpoint_name: vertex-pinecone-rag-chat
-  model_name: vertex-pinecone-rag-chat-model
+  endpoint_name: vertex-pinecone-mcp
+  model_name: vertex-pinecone-mcp-model
   embedding_model: gemini-embedding-001
   embedding_dimensions: 1024
   generative_model: gemini-2.5-flash
