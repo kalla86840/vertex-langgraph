@@ -8,6 +8,9 @@ openai:
   embedding_model: text-embedding-3-small
   embedding_dimensions: 1024
   generation_model: gpt-4.1-mini
+crewai:
+  llm_model: gpt-4.1-mini
+  verbose: false
 pinecone:
   index: news-demo
   namespace: news

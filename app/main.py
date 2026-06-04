@@ -86,9 +86,9 @@ class VertexPredictRequest(BaseModel):
 
 
 app = FastAPI(
-    title="Vertex Pinecone MCP API",
-    version="2.0.0",
-    description="GCP Vertex AI endpoint for Pinecone-backed MCP inference.",
+    title="GCP CrewAI RAG API",
+    version="3.0.0",
+    description="Real-time GCP endpoint for Python, OpenAI, CrewAI, and Pinecone RAG.",
 )
 
 

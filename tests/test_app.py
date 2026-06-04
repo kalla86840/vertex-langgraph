@@ -533,7 +533,7 @@ def test_assistant_returns_agent_synthesis(monkeypatch):
         "app.main.run_assistant",
         lambda settings, question, matches, requested_agents: {
             "answer": "assistant synthesis [Source 1]",
-            "agents": [{"agent": "retrieval_agent", "output": "review"}],
+            "agents": [{"agent": "hospital_agent", "output": "review"}],
             "sources": [{"number": 1, "id": "record-1"}],
         },
     )
@@ -541,10 +541,10 @@ def test_assistant_returns_agent_synthesis(monkeypatch):
     client = TestClient(app)
     response = client.post(
         "/assistant",
-        json={"question": "Summarize the docs", "agents": ["retrieval_agent"]},
+        json={"question": "Summarize the docs", "agents": ["hospital_agent"]},
     )
 
     assert response.status_code == 200
     body = response.json()
     assert body["answer"] == "assistant synthesis [Source 1]"
-    assert body["agents"][0]["agent"] == "retrieval_agent"
+    assert body["agents"][0]["agent"] == "hospital_agent"

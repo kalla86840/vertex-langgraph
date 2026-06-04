@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     openai_embedding_model: str = Field(default="text-embedding-3-small", alias="OPENAI_EMBEDDING_MODEL")
     openai_embedding_dimensions: int = Field(default=1024, alias="OPENAI_EMBEDDING_DIMENSIONS")
     openai_generation_model: str = Field(default="gpt-4.1-mini", alias="OPENAI_GENERATION_MODEL")
+    crewai_llm_model: str = Field(default="", alias="CREWAI_LLM_MODEL")
+    crewai_verbose: bool = Field(default=False, alias="CREWAI_VERBOSE")
     pinecone_api_key: str = Field(default="", alias="PINECONE_API_KEY")
     pinecone_host: AnyHttpUrl = Field(
         default="https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io",

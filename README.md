@@ -1,19 +1,30 @@
-# Vertex Pinecone MCP
+# GCP CrewAI RAG Endpoint
 
-This repository deploys a Google Cloud Vertex AI custom-container endpoint for
-Pinecone-backed MCP inference, chatbots, and assistants. It uses Vertex AI
-Endpoint for serving, OpenAI for embeddings and generation, and Pinecone for
-retrieval.
+This repository deploys a real-time Google Cloud endpoint for Pinecone-backed
+RAG, chatbots, and CrewAI assistants. It uses Python/FastAPI for serving,
+OpenAI for embeddings and generation, CrewAI for multi-agent review, and
+Pinecone for retrieval and memory.
 
 ## Capabilities
 
 - Pinecone semantic and optional hybrid search
 - RAG answers with Pinecone source citations
 - `/chat` route for a grounded chatbot
-- `/assistant` route with retrieval, procedure, and review agents
+- `/assistant` route with CrewAI hospital, doctor, and nurse agents
 - durable Pinecone conversation memory routes
 - duplicate detection, fetch, and Vertex online prediction routes
+- GitHub Actions CI/CD to Artifact Registry and a Cloud Run real-time endpoint
 - Cloud Build CI/CD to Artifact Registry and a Vertex AI endpoint
+
+## GitHub Actions GCP Cloud Run CI/CD
+
+The primary pipeline is `.github/workflows/gcp-cloud-run-cicd.yml`. On every
+push to `main`, it installs dependencies, runs tests, builds the container,
+pushes it to Artifact Registry, deploys Cloud Run with Secret Manager-backed
+OpenAI and Pinecone keys, and prints the live HTTPS endpoint URL.
+
+See `docs/gcp-cloud-run-cicd.md` for Workload Identity Federation, GitHub
+secrets, IAM roles, and a sample `/assistant` request.
 
 ## Required Google Cloud Setup
 
@@ -129,13 +140,13 @@ Send that payload to `POST /chat`.
 {
   "question": "Summarize the retrieved guidance and flag important caveats.",
   "mode": "assistant",
-  "agents": ["retrieval_agent", "procedure_agent", "review_agent"],
+  "agents": ["hospital_agent", "doctor_agent", "nurse_agent"],
   "top_k": 5,
   "namespace": "news"
 }
 ```
 
-Send that payload to `POST /assistant`, or wrap it in `instances` for the
+Send that payload to `POST /assistant` for the CrewAI agent path, or wrap it in `instances` for the
 Vertex prediction route:
 
 ```json
