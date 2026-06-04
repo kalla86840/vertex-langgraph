@@ -8,7 +8,7 @@ real-time HTTPS endpoint on Cloud Run.
 
 - Python FastAPI service
 - OpenAI Responses API for final answer generation
-- CrewAI hospital, doctor, and nurse agents for `/assistant`
+- AutoGen hospital, doctor, and nurse agents for `/assistant`
 - Pinecone retrieval and memory
 - Cloud Run real-time endpoint with one warm minimum instance
 
@@ -82,10 +82,18 @@ Real-time endpoint: https://SERVICE-REGION.a.run.app
 Health check: https://SERVICE-REGION.a.run.app/health
 ```
 
-Use `/assistant` for the CrewAI path:
+Use `/assistant` for the AutoGen path:
 
 ```bash
 curl -X POST "$SERVICE_URL/assistant" \
   -H "Content-Type: application/json" \
   -d '{"question":"Summarize the retrieved guidance and cite sources.","agents":["hospital_agent","doctor_agent","nurse_agent"],"top_k":5}'
+```
+
+The same assistant can be called through a Vertex-style prediction body:
+
+```bash
+curl -X POST "$SERVICE_URL/predict" \
+  -H "Content-Type: application/json" \
+  -d '{"instances":[{"mode":"assistant","question":"Summarize the retrieved guidance and cite sources.","agents":["hospital_agent","doctor_agent","nurse_agent"],"top_k":5}]}'
 ```

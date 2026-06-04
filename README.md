@@ -1,8 +1,8 @@
-# GCP CrewAI RAG Endpoint
+# GCP AutoGen RAG Endpoint
 
 This repository deploys a real-time Google Cloud endpoint for Pinecone-backed
-RAG, chatbots, and CrewAI assistants. It uses Python/FastAPI for serving,
-OpenAI for embeddings and generation, CrewAI for multi-agent review, and
+RAG, chatbots, and AutoGen assistants. It uses Python/FastAPI for serving,
+OpenAI for embeddings and generation, AutoGen for multi-agent review, and
 Pinecone for retrieval and memory.
 
 ## Capabilities
@@ -10,11 +10,25 @@ Pinecone for retrieval and memory.
 - Pinecone semantic and optional hybrid search
 - RAG answers with Pinecone source citations
 - `/chat` route for a grounded chatbot
-- `/assistant` route with CrewAI hospital, doctor, and nurse agents
+- `/assistant` route with AutoGen hospital, doctor, and nurse agents
 - durable Pinecone conversation memory routes
 - duplicate detection, fetch, and Vertex online prediction routes
 - GitHub Actions CI/CD to Artifact Registry and a Cloud Run real-time endpoint
 - Cloud Build CI/CD to Artifact Registry and a Vertex AI endpoint
+
+## GCP CI/CD Real-Time Endpoints
+
+This repo includes two Google CI/CD paths:
+
+- `cloudbuild.yaml` builds the Python container, uploads it as a Vertex AI
+  model, creates or reuses the `vertex-pinecone-mcp` endpoint, and deploys the
+  model for real-time online prediction at `/predict`.
+- `.github/workflows/gcp-cloud-run-cicd.yml` builds the same API and deploys a
+  warm Cloud Run real-time HTTPS endpoint.
+
+Both paths run tests, build the container, use OpenAI and Pinecone secrets from
+Google Secret Manager, and configure the AutoGen model used by the hospital,
+doctor, and nurse agents.
 
 ## GitHub Actions GCP Cloud Run CI/CD
 
@@ -146,7 +160,7 @@ Send that payload to `POST /chat`.
 }
 ```
 
-Send that payload to `POST /assistant` for the CrewAI agent path, or wrap it in `instances` for the
+Send that payload to `POST /assistant` for the AutoGen agent path, or wrap it in `instances` for the
 Vertex prediction route:
 
 ```json

@@ -86,9 +86,9 @@ class VertexPredictRequest(BaseModel):
 
 
 app = FastAPI(
-    title="GCP CrewAI RAG API",
-    version="3.0.0",
-    description="Real-time GCP endpoint for Python, OpenAI, CrewAI, and Pinecone RAG.",
+    title="GCP AutoGen Healthcare RAG API",
+    version="4.0.0",
+    description="Real-time GCP endpoint for Python, OpenAI, AutoGen agents, and Pinecone RAG.",
 )
 
 
@@ -102,7 +102,9 @@ def health(settings: Settings = Depends(get_settings)) -> dict[str, Any]:
             "embedding_model": settings.openai_embedding_model,
             "embedding_dimensions": settings.openai_embedding_dimensions,
             "generation_model": settings.openai_generation_model,
+            "autogen_model": settings.autogen_model,
         },
+        "agents": ["hospital_agent", "doctor_agent", "nurse_agent"],
         "pinecone": {
             "index": settings.pinecone_index,
             "namespace": settings.pinecone_namespace,

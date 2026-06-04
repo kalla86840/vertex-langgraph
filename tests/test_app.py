@@ -15,6 +15,8 @@ def test_health_uses_pinecone_defaults(monkeypatch):
     assert response.status_code == 200
     body = response.json()
     assert body["status"] == "ok"
+    assert body["openai"]["autogen_model"] == "gpt-4.1-mini"
+    assert body["agents"] == ["hospital_agent", "doctor_agent", "nurse_agent"]
     assert body["pinecone"]["index"] == "news-demo"
     assert body["pinecone"]["namespace"] == "news"
     assert body["pinecone"]["host"] == "https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io/"
@@ -548,3 +550,37 @@ def test_assistant_returns_agent_synthesis(monkeypatch):
     body = response.json()
     assert body["answer"] == "assistant synthesis [Source 1]"
     assert body["agents"][0]["agent"] == "hospital_agent"
+
+
+def test_run_assistant_prefers_autogen_agents(monkeypatch):
+    from app.assistant import run_assistant
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    settings = get_settings()
+
+    selected = []
+    monkeypatch.setattr(
+        "app.assistant._run_autogen_agents",
+        lambda settings, question, context, agents: selected.extend(agents)
+        or [{"agent": agent, "output": f"{agent} review [Source 1]"} for agent in agents],
+    )
+    monkeypatch.setattr("app.assistant._generate", lambda settings, prompt: "final synthesis [Source 1]")
+
+    result = run_assistant(
+        settings=settings,
+        question="What should the care team consider?",
+        matches=[
+            {
+                "id": "record-1",
+                "score": 0.99,
+                "metadata": {"title": "Care Guidance", "text": "Coordinate discharge planning."},
+            }
+        ],
+    )
+
+    assert result["engine"] == "autogen"
+    assert selected == ["hospital_agent", "doctor_agent", "nurse_agent"]
+    assert [agent["agent"] for agent in result["agents"]] == selected
+    assert result["answer"] == "final synthesis [Source 1]"
