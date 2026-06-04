@@ -6,8 +6,8 @@ This project deploys a custom container to a real-time Vertex AI endpoint named
 ## Cloud Build Deployment
 
 The Cloud Build trigger service account needs permissions to run builds, read
-the Pinecone secret, push container images, upload Vertex models, and deploy
-those models to an endpoint.
+the Pinecone and OpenAI secrets, push container images, upload Vertex models,
+and deploy those models to an endpoint.
 
 For the current project, the trigger service account is:
 
@@ -37,6 +37,16 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:$BUILD_SA" \
   --role="roles/secretmanager.secretAccessor"
 ```
+
+Cloud Build expects both secrets to exist in Secret Manager:
+
+```bash
+echo -n "YOUR_PINECONE_API_KEY" | gcloud secrets create PINECONE_API_KEY --data-file=-
+echo -n "YOUR_OPENAI_API_KEY" | gcloud secrets create OPENAI_API_KEY --data-file=-
+```
+
+This is an OpenAI-backed endpoint. The running container does not call Gemini
+publisher models, so it does not need Gemini model prediction permissions.
 
 ## Endpoint Prediction
 

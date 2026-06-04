@@ -2,20 +2,23 @@ from app.config import Settings
 
 
 def embed_text(settings: Settings, text: str, task_type: str = "RETRIEVAL_QUERY") -> list[float]:
-    if not settings.gcp_project_id:
-        raise RuntimeError("GCP_PROJECT_ID is required for Vertex AI embeddings")
+    if not settings.openai_api_key:
+        raise RuntimeError("OPENAI_API_KEY is required for OpenAI embeddings")
 
-    try:
-        import vertexai
-        from vertexai.language_models import TextEmbeddingInput, TextEmbeddingModel
-    except ImportError as exc:
-        raise RuntimeError("google-cloud-aiplatform is required for Vertex AI embeddings") from exc
+    import httpx
 
-    vertexai.init(project=settings.gcp_project_id, location=settings.vertex_location)
-    model = TextEmbeddingModel.from_pretrained(settings.vertex_embedding_model)
-    kwargs = {}
-    if settings.vertex_embedding_dimensions > 0:
-        kwargs["output_dimensionality"] = settings.vertex_embedding_dimensions
+    payload = {
+        "model": settings.openai_embedding_model,
+        "input": text,
+    }
+    if settings.openai_embedding_dimensions > 0:
+        payload["dimensions"] = settings.openai_embedding_dimensions
 
-    embedding = model.get_embeddings([TextEmbeddingInput(text, task_type)], **kwargs)[0]
-    return embedding.values
+    response = httpx.post(
+        "https://api.openai.com/v1/embeddings",
+        headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+        json=payload,
+        timeout=60,
+    )
+    response.raise_for_status()
+    return response.json()["data"][0]["embedding"]

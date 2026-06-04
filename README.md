@@ -2,7 +2,8 @@
 
 This repository deploys a Google Cloud Vertex AI custom-container endpoint for
 Pinecone-backed MCP inference, chatbots, and assistants. It uses Vertex AI
-embeddings for retrieval and Gemini on Vertex AI for grounded answer generation.
+Endpoint for serving, OpenAI for embeddings and generation, and Pinecone for
+retrieval.
 
 ## Capabilities
 
@@ -21,6 +22,7 @@ gcloud auth login
 gcloud config set project YOUR_GCP_PROJECT_ID
 gcloud services enable cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com secretmanager.googleapis.com
 echo -n "YOUR_PINECONE_API_KEY" | gcloud secrets create PINECONE_API_KEY --data-file=-
+echo -n "YOUR_OPENAI_API_KEY" | gcloud secrets create OPENAI_API_KEY --data-file=-
 ```
 
 Grant the Cloud Build service account access to Secret Manager, Artifact
@@ -88,6 +90,7 @@ python -m venv .venv
 pip install -r requirements.txt
 $env:GCP_PROJECT_ID = "YOUR_GCP_PROJECT_ID"
 $env:PINECONE_API_KEY = "YOUR_PINECONE_API_KEY"
+$env:OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"
 uvicorn app.main:app --reload --port 8080
 ```
 
@@ -105,8 +108,8 @@ Add `.txt` files to `docs/`, then run:
 python scripts/ingest_docs.py --docs-dir docs
 ```
 
-The script chunks each file, creates `RETRIEVAL_DOCUMENT` embeddings with
-`gemini-embedding-001`, and upserts records into Pinecone.
+The script chunks each file, creates OpenAI embeddings with
+`text-embedding-3-small`, and upserts records into Pinecone.
 
 ## Chatbot Request
 

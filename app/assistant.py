@@ -12,14 +12,29 @@ AGENTS = {
 
 
 def _generate(settings: Settings, prompt: str) -> str:
-    if not settings.gcp_project_id:
-        raise RuntimeError("GCP_PROJECT_ID is required for Vertex AI generation")
+    if not settings.openai_api_key:
+        raise RuntimeError("OPENAI_API_KEY is required for OpenAI generation")
 
-    import vertexai
-    from vertexai.generative_models import GenerativeModel
+    import httpx
 
-    vertexai.init(project=settings.gcp_project_id, location=settings.vertex_location)
-    return GenerativeModel(settings.vertex_generative_model).generate_content(prompt).text
+    response = httpx.post(
+        "https://api.openai.com/v1/responses",
+        headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+        json={"model": settings.openai_generation_model, "input": prompt},
+        timeout=120,
+    )
+    response.raise_for_status()
+    body = response.json()
+    if body.get("output_text"):
+        return body["output_text"]
+
+    parts: list[str] = []
+    for item in body.get("output", []):
+        for content in item.get("content", []):
+            text = content.get("text")
+            if isinstance(text, str):
+                parts.append(text)
+    return "\n".join(parts).strip()
 
 
 def run_assistant(
@@ -56,7 +71,7 @@ def run_assistant(
 
     synthesis = _generate(
         settings,
-        "You are the final Vertex AI assistant coordinator. Answer using only the retrieved "
+        "You are the final OpenAI assistant coordinator. Answer using only the retrieved "
         "context and agent reviews. Cite sources like [Source 1]. State uncertainty clearly.\n\n"
         f"Question:\n{question}\n\nRetrieved context:\n{context}\n\nAgent reviews:\n{outputs}",
     )

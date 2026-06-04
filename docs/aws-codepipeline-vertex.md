@@ -5,9 +5,8 @@ inference on Vertex AI. A GitHub push triggers CodePipeline, CodeBuild runs the
 tests, builds the Docker image, pushes it to Google Artifact Registry, uploads a
 Vertex model, and creates or updates the Vertex endpoint.
 
-OpenAI is not required for this pipeline because the current application already
-uses Vertex AI Gemini for generation and embeddings. Add OpenAI only if the app
-code is changed to call OpenAI models.
+The endpoint is hosted on Vertex AI, but model inference inside the container
+uses OpenAI for embeddings and answer generation.
 
 ## 1. Create the AWS GitHub connection
 
@@ -26,6 +25,7 @@ Create SecureString parameters:
 ```powershell
 aws ssm put-parameter --name "/vertex-mcp-ops/gcp-service-account-key-json" --type SecureString --value "<full GCP service account JSON>" --overwrite
 aws ssm put-parameter --name "/vertex-mcp-ops/pinecone-api-key" --type SecureString --value "<pinecone api key>" --overwrite
+aws ssm put-parameter --name "/vertex-mcp-ops/openai-api-key" --type SecureString --value "<openai api key>" --overwrite
 ```
 
 The GCP service account needs these permissions in the target GCP project:

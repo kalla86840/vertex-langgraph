@@ -4,9 +4,10 @@ project:
 vertex:
   endpoint_name: vertex-pinecone-mcp
   model_name: vertex-pinecone-mcp-model
-  embedding_model: gemini-embedding-001
+openai:
+  embedding_model: text-embedding-3-small
   embedding_dimensions: 1024
-  generative_model: gemini-2.5-flash
+  generation_model: gpt-4.1-mini
 pinecone:
   index: news-demo
   namespace: news

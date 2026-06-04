@@ -97,11 +97,11 @@ def health(settings: Settings = Depends(get_settings)) -> dict[str, Any]:
     return {
         "status": "ok",
         "app": settings.app_name,
-        "vertex": {
-            "project_id_configured": bool(settings.gcp_project_id),
-            "location": settings.vertex_location,
-            "embedding_model": settings.vertex_embedding_model,
-            "generative_model": settings.vertex_generative_model,
+        "openai": {
+            "configured": bool(settings.openai_api_key),
+            "embedding_model": settings.openai_embedding_model,
+            "embedding_dimensions": settings.openai_embedding_dimensions,
+            "generation_model": settings.openai_generation_model,
         },
         "pinecone": {
             "index": settings.pinecone_index,
@@ -307,7 +307,7 @@ def assistant(
             requested_agents=request.agents,
         )
     except Exception as exc:
-        raise HTTPException(status_code=502, detail=f"Vertex assistant generation failed: {exc}") from exc
+        raise HTTPException(status_code=502, detail=f"OpenAI assistant generation failed: {exc}") from exc
     return {"question": question, **result, "matches": matches}
 
 

@@ -8,9 +8,9 @@ substitutions:
   _PINECONE_INDEX: news-demo
   _PINECONE_NAMESPACE: news
   _MEMORY_NAMESPACE: memory
-  _VERTEX_EMBEDDING_MODEL: gemini-embedding-001
-  _VERTEX_EMBEDDING_DIMENSIONS: "1024"
-  _VERTEX_GENERATIVE_MODEL: gemini-2.5-flash
+  _OPENAI_EMBEDDING_MODEL: text-embedding-3-small
+  _OPENAI_EMBEDDING_DIMENSIONS: "1024"
+  _OPENAI_GENERATION_MODEL: gpt-4.1-mini
 
 options:
   logging: CLOUD_LOGGING_ONLY
@@ -57,6 +57,7 @@ steps:
     entrypoint: bash
     secretEnv:
       - PINECONE_API_KEY
+      - OPENAI_API_KEY
     args:
       - -c
       - |
@@ -70,7 +71,7 @@ steps:
           --container-ports=8080 \
           --container-health-route=/health \
           --container-predict-route=/predict \
-          --container-env-vars=APP_NAME="${_IMAGE_NAME}",GCP_PROJECT_ID="${PROJECT_ID}",VERTEX_LOCATION="${_REGION}",VERTEX_EMBEDDING_MODEL="${_VERTEX_EMBEDDING_MODEL}",VERTEX_EMBEDDING_DIMENSIONS="${_VERTEX_EMBEDDING_DIMENSIONS}",VERTEX_GENERATIVE_MODEL="${_VERTEX_GENERATIVE_MODEL}",PINECONE_API_KEY="$$PINECONE_API_KEY",PINECONE_HOST="${_PINECONE_HOST}",PINECONE_INDEX="${_PINECONE_INDEX}",PINECONE_NAMESPACE="${_PINECONE_NAMESPACE}",MEMORY_NAMESPACE="${_MEMORY_NAMESPACE}" \
+          --container-env-vars=APP_NAME="${_IMAGE_NAME}",GCP_PROJECT_ID="${PROJECT_ID}",OPENAI_API_KEY="$$OPENAI_API_KEY",OPENAI_EMBEDDING_MODEL="${_OPENAI_EMBEDDING_MODEL}",OPENAI_EMBEDDING_DIMENSIONS="${_OPENAI_EMBEDDING_DIMENSIONS}",OPENAI_GENERATION_MODEL="${_OPENAI_GENERATION_MODEL}",PINECONE_API_KEY="$$PINECONE_API_KEY",PINECONE_HOST="${_PINECONE_HOST}",PINECONE_INDEX="${_PINECONE_INDEX}",PINECONE_NAMESPACE="${_PINECONE_NAMESPACE}",MEMORY_NAMESPACE="${_MEMORY_NAMESPACE}" \
           --format="value(model)")
         MODEL_ID="$${MODEL_RESOURCE##*/}"
         if [[ -z "$$MODEL_ID" ]]; then
@@ -103,6 +104,8 @@ availableSecrets:
   secretManager:
     - versionName: projects/${PROJECT_ID}/secrets/PINECONE_API_KEY/versions/latest
       env: PINECONE_API_KEY
+    - versionName: projects/${PROJECT_ID}/secrets/OPENAI_API_KEY/versions/latest
+      env: OPENAI_API_KEY
 
 images:
   - "${_REGION}-docker.pkg.dev/${PROJECT_ID}/${_ARTIFACT_REPOSITORY}/${_IMAGE_NAME}:${SHORT_SHA}"

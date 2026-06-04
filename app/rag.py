@@ -53,8 +53,8 @@ def build_context(matches: list[dict[str, Any]], max_chars: int) -> tuple[str, l
 
 
 def generate_answer(settings: Settings, question: str, matches: list[dict[str, Any]]) -> dict[str, Any]:
-    if not settings.gcp_project_id:
-        raise RuntimeError("GCP_PROJECT_ID is required for Vertex AI generation")
+    if not settings.openai_api_key:
+        raise RuntimeError("OPENAI_API_KEY is required for OpenAI generation")
 
     context, sources = build_context(matches, settings.rag_max_context_chars)
     if not context:
@@ -63,23 +63,34 @@ def generate_answer(settings: Settings, question: str, matches: list[dict[str, A
             "sources": [],
         }
 
-    try:
-        import vertexai
-        from vertexai.generative_models import GenerativeModel
-    except ImportError as exc:
-        raise RuntimeError("google-cloud-aiplatform is required for Vertex AI generation") from exc
+    import httpx
 
-    vertexai.init(project=settings.gcp_project_id, location=settings.vertex_location)
-    model = GenerativeModel(settings.vertex_generative_model)
     prompt = (
         "Answer using only the retrieved Pinecone context. "
         "If the answer is not in the context, say you do not know. "
         "Cite sources by source number, for example [Source 1].\n\n"
         f"Question:\n{question}\n\nRetrieved context:\n{context}"
     )
-    response = model.generate_content(prompt)
+    response = httpx.post(
+        "https://api.openai.com/v1/responses",
+        headers={"Authorization": f"Bearer {settings.openai_api_key}"},
+        json={"model": settings.openai_generation_model, "input": prompt},
+        timeout=120,
+    )
+    response.raise_for_status()
+    body = response.json()
 
     return {
-        "answer": response.text,
+        "answer": body.get("output_text") or _extract_response_text(body),
         "sources": sources,
     }
+
+
+def _extract_response_text(body: dict[str, Any]) -> str:
+    parts: list[str] = []
+    for item in body.get("output", []):
+        for content in item.get("content", []):
+            text = content.get("text")
+            if isinstance(text, str):
+                parts.append(text)
+    return "\n".join(parts).strip()

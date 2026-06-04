@@ -51,12 +51,16 @@ phases:
           --container-ports=8080 \
           --container-health-route=/health \
           --container-predict-route=/predict \
-          --container-env-vars=APP_NAME="$IMAGE_NAME",GCP_PROJECT_ID="$GCP_PROJECT_ID",VERTEX_LOCATION="$GCP_REGION",VERTEX_EMBEDDING_MODEL="$VERTEX_EMBEDDING_MODEL",VERTEX_EMBEDDING_DIMENSIONS="$VERTEX_EMBEDDING_DIMENSIONS",VERTEX_GENERATIVE_MODEL="$VERTEX_GENERATIVE_MODEL",PINECONE_API_KEY="$PINECONE_API_KEY",PINECONE_HOST="$PINECONE_HOST",PINECONE_INDEX="$PINECONE_INDEX",PINECONE_NAMESPACE="$PINECONE_NAMESPACE",MEMORY_NAMESPACE="$MEMORY_NAMESPACE" \
-          --format="value(name)")
+          --container-env-vars=APP_NAME="$IMAGE_NAME",GCP_PROJECT_ID="$GCP_PROJECT_ID",OPENAI_API_KEY="$OPENAI_API_KEY",OPENAI_EMBEDDING_MODEL="$OPENAI_EMBEDDING_MODEL",OPENAI_EMBEDDING_DIMENSIONS="$OPENAI_EMBEDDING_DIMENSIONS",OPENAI_GENERATION_MODEL="$OPENAI_GENERATION_MODEL",PINECONE_API_KEY="$PINECONE_API_KEY",PINECONE_HOST="$PINECONE_HOST",PINECONE_INDEX="$PINECONE_INDEX",PINECONE_NAMESPACE="$PINECONE_NAMESPACE",MEMORY_NAMESPACE="$MEMORY_NAMESPACE" \
+          --format="value(model)")
         MODEL_ID="${MODEL_RESOURCE##*/}"
+        if [[ -z "$MODEL_ID" ]]; then
+          echo "Vertex model upload did not return a model resource."
+          exit 1
+        fi
         ENDPOINT_RESOURCE=$(gcloud ai endpoints list \
           --region="$GCP_REGION" \
-          --filter="displayName=${VERTEX_ENDPOINT_NAME}" \
+          --filter="display_name=${VERTEX_ENDPOINT_NAME}" \
           --format="value(name)" | head -n 1)
         if [[ -z "$ENDPOINT_RESOURCE" ]]; then
           ENDPOINT_RESOURCE=$(gcloud ai endpoints create \
