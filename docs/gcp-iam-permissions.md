@@ -3,6 +3,10 @@
 This project deploys a custom container to a real-time Vertex AI endpoint named
 `vertex-pinecone-mcp`.
 
+For the complete copy/paste setup covering APIs, Secret Manager, Cloud Build,
+GitHub Actions OIDC, Cloud Run, and endpoint callers, see
+`docs/deployment-requirements.md`.
+
 ## Cloud Build Deployment
 
 The Cloud Build trigger service account needs permissions to run builds, read
@@ -18,8 +22,9 @@ For the current project, the trigger service account is:
 Grant these project roles:
 
 ```bash
-PROJECT_ID="inner-domain-397315"
-BUILD_SA="683447325858-compute@developer.gserviceaccount.com"
+PROJECT_ID="YOUR_GCP_PROJECT_ID"
+PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
+BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
 
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:$BUILD_SA" \
@@ -47,6 +52,34 @@ echo -n "YOUR_OPENAI_API_KEY" | gcloud secrets create OPENAI_API_KEY --data-file
 
 This is an OpenAI-backed endpoint. The running container does not call Gemini
 publisher models, so it does not need Gemini model prediction permissions.
+
+## GitHub Actions Cloud Run Deployment
+
+The GitHub Actions workflow requires:
+
+```text
+permissions:
+  contents: read
+  id-token: write
+```
+
+The repository must also have these Actions secrets:
+
+```text
+GCP_PROJECT_ID
+GCP_SERVICE_ACCOUNT
+GCP_WORKLOAD_IDENTITY_PROVIDER
+```
+
+The deploy service account needs:
+
+```text
+roles/run.admin
+roles/artifactregistry.admin
+roles/secretmanager.secretAccessor
+roles/iam.serviceAccountUser
+roles/iam.workloadIdentityUser on the service account IAM policy for the GitHub OIDC principal
+```
 
 ## Endpoint Prediction
 
