@@ -3,7 +3,7 @@ param(
     [string]$ProjectId,
 
     [string]$Region = "us-central1",
-    [string]$Repository = "kalla86840/gcpcrewai",
+    [string]$Repository = "kalla86840/gcpautogen",
     [string]$ServiceAccountName = "github-actions-deployer",
     [string]$PoolId = "github-pool",
     [string]$ProviderId = "github-provider"
@@ -18,8 +18,10 @@ $ProviderResource = "projects/$ProjectNumber/locations/global/workloadIdentityPo
 gcloud config set project $ProjectId
 
 gcloud services enable `
+    cloudbuild.googleapis.com `
     run.googleapis.com `
     artifactregistry.googleapis.com `
+    aiplatform.googleapis.com `
     iamcredentials.googleapis.com `
     secretmanager.googleapis.com
 

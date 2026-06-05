@@ -58,4 +58,15 @@ roles/iam.serviceAccountUser
 ```
 
 It also needs `roles/iam.workloadIdentityUser` on the service account IAM
-policy for the `kalla86840/gcpcrewai` repository principal.
+policy for the `kalla86840/gcpautogen` repository principal.
+
+## Setup Helper
+
+Run the PowerShell helper from the repo root to create or update the deploy
+service account, Workload Identity pool, provider, and IAM bindings:
+
+```powershell
+.\scripts\setup-gcp-cloud-run-permissions.ps1 -ProjectId "YOUR_GCP_PROJECT_ID"
+```
+
+The helper prints the exact GitHub Actions secrets to add after it completes.

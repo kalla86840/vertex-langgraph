@@ -44,6 +44,12 @@ echo -n "YOUR_PINECONE_API_KEY" | gcloud secrets versions add PINECONE_API_KEY -
 Vertex AI model, creates or reuses the `vertex-pinecone-mcp` endpoint, and
 deploys the model for online prediction.
 
+PowerShell helper:
+
+```powershell
+.\scripts\setup-gcp-vertex-permissions.ps1 -ProjectId "YOUR_GCP_PROJECT_ID" -CallerMember "user:YOUR_EMAIL@gmail.com"
+```
+
 ```bash
 PROJECT_ID="YOUR_GCP_PROJECT_ID"
 PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
@@ -76,6 +82,12 @@ gcloud builds submit --config cloudbuild.yaml
 
 `.github/workflows/gcp-cloud-run-cicd.yml` uses Workload Identity Federation,
 pushes the image to Artifact Registry, and deploys a warm Cloud Run endpoint.
+
+PowerShell helper:
+
+```powershell
+.\scripts\setup-gcp-cloud-run-permissions.ps1 -ProjectId "YOUR_GCP_PROJECT_ID"
+```
 
 ```bash
 PROJECT_ID="YOUR_GCP_PROJECT_ID"

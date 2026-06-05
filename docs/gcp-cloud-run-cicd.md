@@ -14,6 +14,13 @@ real-time HTTPS endpoint on Cloud Run.
 
 ## Required GCP APIs
 
+The complete deployment checklist is in `docs/deployment-requirements.md`.
+For the Cloud Run GitHub Actions path, you can also run:
+
+```powershell
+.\scripts\setup-gcp-cloud-run-permissions.ps1 -ProjectId "YOUR_GCP_PROJECT_ID"
+```
+
 ```bash
 gcloud services enable run.googleapis.com artifactregistry.googleapis.com iamcredentials.googleapis.com secretmanager.googleapis.com
 ```
@@ -95,7 +102,7 @@ to impersonate that service account:
 PROJECT_ID="YOUR_PROJECT_ID"
 PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
 DEPLOY_SA="github-actions-deployer@$PROJECT_ID.iam.gserviceaccount.com"
-REPO="kalla86840/gcpcrewai"
+REPO="kalla86840/gcpautogen"
 
 gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" \
   --project="$PROJECT_ID" \

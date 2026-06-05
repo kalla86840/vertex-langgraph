@@ -13,12 +13,6 @@ The Cloud Build trigger service account needs permissions to run builds, read
 the Pinecone and OpenAI secrets, push container images, upload Vertex models,
 and deploy those models to an endpoint.
 
-For the current project, the trigger service account is:
-
-```text
-683447325858-compute@developer.gserviceaccount.com
-```
-
 Grant these project roles:
 
 ```bash

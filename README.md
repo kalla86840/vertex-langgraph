@@ -37,8 +37,9 @@ push to `main`, it installs dependencies, runs tests, builds the container,
 pushes it to Artifact Registry, deploys Cloud Run with Secret Manager-backed
 OpenAI and Pinecone keys, and prints the live HTTPS endpoint URL.
 
-See `docs/gcp-cloud-run-cicd.md` for Workload Identity Federation, GitHub
-secrets, IAM roles, and a sample `/assistant` request. See
+See `docs/deployment-requirements.md` for the full permissions checklist. See
+`docs/gcp-cloud-run-cicd.md` for Workload Identity Federation, GitHub secrets,
+IAM roles, and a sample `/assistant` request. See
 `docs/github-repo-permissions.md` for the repository Actions permissions and
 required secrets. A setup helper is available at
 `scripts/setup-gcp-cloud-run-permissions.ps1`.
@@ -48,7 +49,7 @@ required secrets. A setup helper is available at
 ```bash
 gcloud auth login
 gcloud config set project YOUR_GCP_PROJECT_ID
-gcloud services enable cloudbuild.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com secretmanager.googleapis.com
+gcloud services enable cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com aiplatform.googleapis.com secretmanager.googleapis.com iamcredentials.googleapis.com
 echo -n "YOUR_PINECONE_API_KEY" | gcloud secrets create PINECONE_API_KEY --data-file=-
 echo -n "YOUR_OPENAI_API_KEY" | gcloud secrets create OPENAI_API_KEY --data-file=-
 ```
@@ -66,17 +67,13 @@ The default online endpoint name is `vertex-pinecone-mcp`.
 
 ## Required Google Cloud IAM
 
-For Cloud Build deployment, grant the trigger service account the roles needed
-to build, push images, read the Pinecone secret, and deploy Vertex AI models.
-For the current project, the trigger service account shown in the console is:
-
-```text
-683447325858-compute@developer.gserviceaccount.com
-```
+For Cloud Build deployment, grant the build service account the roles needed to
+build, push images, read secrets, and deploy Vertex AI models.
 
 ```bash
-PROJECT_ID="inner-domain-397315"
-BUILD_SA="683447325858-compute@developer.gserviceaccount.com"
+PROJECT_ID="YOUR_GCP_PROJECT_ID"
+PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
+BUILD_SA="${PROJECT_NUMBER}@cloudbuild.gserviceaccount.com"
 
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:$BUILD_SA" \
@@ -108,7 +105,9 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 For a future webpage backend, grant the same role to the backend service
 account instead of a user.
 
-The same commands are kept in `docs/gcp-iam-permissions.md` for quick reuse.
+The complete Cloud Build, GitHub Actions OIDC, Cloud Run, and endpoint caller
+commands are kept in `docs/deployment-requirements.md` and
+`docs/gcp-iam-permissions.md` for quick reuse.
 
 ## Local Development
 
