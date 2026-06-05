@@ -29,7 +29,7 @@ Parameters:
     Default: vertex-pinecone-mcp
   VertexEndpointName:
     Type: String
-    Default: gcp-crewai
+    Default: gcp-autogen
   VertexModelName:
     Type: String
     Default: vertex-pinecone-mcp-model

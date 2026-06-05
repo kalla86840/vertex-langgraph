@@ -2,7 +2,7 @@ project:
   name: vertex-pinecone-mcp
   region: us-central1
 vertex:
-  endpoint_name: gcp-crewai
+  endpoint_name: gcp-autogen
   model_name: vertex-pinecone-mcp-model
 openai:
   embedding_model: text-embedding-3-small

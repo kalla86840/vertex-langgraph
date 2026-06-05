@@ -37,7 +37,7 @@ The GCP service account needs these permissions in the target GCP project:
 The default Vertex endpoint and model names are:
 
 ```text
-gcp-crewai
+gcp-autogen
 vertex-pinecone-mcp-model
 ```
 
