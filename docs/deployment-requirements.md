@@ -41,7 +41,7 @@ echo -n "YOUR_PINECONE_API_KEY" | gcloud secrets versions add PINECONE_API_KEY -
 ## Cloud Build to Vertex AI Permissions
 
 `cloudbuild.yaml` builds the image, pushes it to Artifact Registry, uploads a
-Vertex AI model, creates or reuses the `gcp-autogen` endpoint, and
+Vertex AI model, creates or reuses the `gcp-crewai` endpoint, and
 deploys the model for online prediction.
 
 PowerShell helper:
