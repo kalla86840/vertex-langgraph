@@ -35,6 +35,21 @@ GCP_SERVICE_ACCOUNT
 GCP_WORKLOAD_IDENTITY_PROVIDER
 ```
 
+The GitHub repository must also allow Actions to request OIDC tokens. In
+GitHub, open:
+
+```text
+Settings -> Actions -> General -> Workflow permissions
+```
+
+Use read access for repository contents. The workflow itself declares:
+
+```yaml
+permissions:
+  contents: read
+  id-token: write
+```
+
 `GCP_SERVICE_ACCOUNT` should look like:
 
 ```text
@@ -72,6 +87,23 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:$DEPLOY_SA" \
   --role="roles/iam.serviceAccountUser"
 ```
+
+Workload Identity Federation must also allow the GitHub repository principal
+to impersonate that service account:
+
+```bash
+PROJECT_ID="YOUR_PROJECT_ID"
+PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
+DEPLOY_SA="github-actions-deployer@$PROJECT_ID.iam.gserviceaccount.com"
+REPO="kalla86840/gcpcrewai"
+
+gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" \
+  --project="$PROJECT_ID" \
+  --role="roles/iam.workloadIdentityUser" \
+  --member="principalSet://iam.googleapis.com/projects/$PROJECT_NUMBER/locations/global/workloadIdentityPools/github-pool/attribute.repository/$REPO"
+```
+
+For a copy/paste setup script, see `scripts/setup-gcp-cloud-run-permissions.ps1`.
 
 ## Pipeline Output
 

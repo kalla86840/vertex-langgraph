@@ -38,7 +38,10 @@ pushes it to Artifact Registry, deploys Cloud Run with Secret Manager-backed
 OpenAI and Pinecone keys, and prints the live HTTPS endpoint URL.
 
 See `docs/gcp-cloud-run-cicd.md` for Workload Identity Federation, GitHub
-secrets, IAM roles, and a sample `/assistant` request.
+secrets, IAM roles, and a sample `/assistant` request. See
+`docs/github-repo-permissions.md` for the repository Actions permissions and
+required secrets. A setup helper is available at
+`scripts/setup-gcp-cloud-run-permissions.ps1`.
 
 ## Required Google Cloud Setup
 
