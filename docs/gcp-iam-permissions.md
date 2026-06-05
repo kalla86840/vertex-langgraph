@@ -1,7 +1,7 @@
 # Google Cloud IAM Permissions
 
 This project deploys a custom container to a real-time Vertex AI endpoint named
-`vertex-pinecone-mcp`.
+`gcp-crewai`.
 
 For the complete copy/paste setup covering APIs, Secret Manager, Cloud Build,
 GitHub Actions OIDC, Cloud Run, and endpoint callers, see

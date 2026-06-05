@@ -21,7 +21,7 @@ Pinecone for retrieval and memory.
 This repo includes two Google CI/CD paths:
 
 - `cloudbuild.yaml` builds the Python container, uploads it as a Vertex AI
-  model, creates or reuses the `vertex-pinecone-mcp` endpoint, and deploys the
+  model, creates or reuses the `gcp-crewai` endpoint, and deploys the
   model for real-time online prediction at `/predict`.
 - `.github/workflows/gcp-cloud-run-cicd.yml` builds the same API and deploys a
   warm Cloud Run real-time HTTPS endpoint.
@@ -63,7 +63,7 @@ gcloud builds submit --config cloudbuild.yaml
 
 The build tests the app, builds the container, pushes it to Artifact Registry,
 uploads a Vertex model, creates or reuses the endpoint, and deploys the model.
-The default online endpoint name is `vertex-pinecone-mcp`.
+The default online endpoint name is `gcp-crewai`.
 
 ## Required Google Cloud IAM
 

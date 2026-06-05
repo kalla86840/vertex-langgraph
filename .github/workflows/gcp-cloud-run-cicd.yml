@@ -8,7 +8,7 @@ on:
 
 env:
   REGION: us-central1
-  SERVICE_NAME: gcpcrewai
+  SERVICE_NAME: gcp-crewai
   ARTIFACT_REPOSITORY: gcpcrewai
   IMAGE_NAME: gcpcrewai-api
   OPENAI_EMBEDDING_MODEL: text-embedding-3-small
