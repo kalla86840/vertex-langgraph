@@ -37,8 +37,14 @@ The GCP service account needs these permissions in the target GCP project:
 The default Vertex endpoint and model names are:
 
 ```text
-gcp-crewai
+aws-langgraph-endpoint
 vertex-pinecone-mcp-model
+```
+
+The default AWS CodePipeline name is:
+
+```text
+aws-langgraph-pipeline
 ```
 
 ## 3. Deploy the AWS pipeline stack
@@ -46,7 +52,7 @@ vertex-pinecone-mcp-model
 ```powershell
 aws cloudformation deploy `
   --template-file aws-codepipeline-vertex.yml `
-  --stack-name vertex-mcp-ops-cicd `
+  --stack-name aws-langgraph-pipeline `
   --capabilities CAPABILITY_IAM `
   --parameter-overrides `
     CodeStarConnectionArn="<your codestar connection arn>" `

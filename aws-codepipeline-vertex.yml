@@ -4,7 +4,7 @@ Description: AWS CodePipeline CI/CD for deploying this container to a real-time 
 Parameters:
   PipelineName:
     Type: String
-    Default: vertex-mcp-ops-vertex-cicd
+    Default: aws-langgraph-pipeline
   CodeStarConnectionArn:
     Type: String
     Description: ARN of an AWS CodeStar connection authorized for GitHub.
@@ -29,7 +29,7 @@ Parameters:
     Default: vertex-pinecone-mcp
   VertexEndpointName:
     Type: String
-    Default: gcp-crewai
+    Default: aws-langgraph-endpoint
   VertexModelName:
     Type: String
     Default: vertex-pinecone-mcp-model
