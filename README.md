@@ -1,14 +1,17 @@
-# GCP AutoGen RAG Endpoint
+# GCP LangGraph RAG Endpoint
 
 This repository deploys a real-time Google Cloud endpoint for Pinecone-backed
-RAG, chatbots, and AutoGen assistants. It uses Python/FastAPI for serving,
-OpenAI for embeddings and generation, AutoGen for multi-agent review, and
-Pinecone for retrieval and memory.
+RAG, chatbots, and LangGraph workflows. It uses Python/FastAPI for serving,
+OpenAI for embeddings and generation, LangGraph for stateful workflow routing,
+Google Cloud Storage for optional artifact export, and Pinecone for retrieval
+and memory.
 
 ## Capabilities
 
 - Pinecone semantic and optional hybrid search
 - RAG answers with Pinecone source citations
+- `/langgraph-hospital` route with a simple LangGraph hospital operations flow
+- optional `gs://` JSON artifact export for LangGraph results
 - `/chat` route for a grounded chatbot
 - `/assistant` route with AutoGen hospital, doctor, and nurse agents
 - durable Pinecone conversation memory routes
@@ -118,6 +121,8 @@ pip install -r requirements.txt
 $env:GCP_PROJECT_ID = "YOUR_GCP_PROJECT_ID"
 $env:PINECONE_API_KEY = "YOUR_PINECONE_API_KEY"
 $env:OPENAI_API_KEY = "YOUR_OPENAI_API_KEY"
+$env:LANGGRAPH_MODEL = "gpt-4.1-mini"
+$env:LANGGRAPH_OUTPUT_BUCKET = ""
 uvicorn app.main:app --reload --port 8080
 ```
 
@@ -149,6 +154,27 @@ The script chunks each file, creates OpenAI embeddings with
 ```
 
 Send that payload to `POST /chat`.
+
+## LangGraph Hospital Request
+
+```json
+{
+  "case_id": "case-demo-001",
+  "patient_summary": "Adult patient recovering after observation, stable vitals.",
+  "question": "What should the hospital team coordinate next?",
+  "top_k": 4,
+  "namespace": "news",
+  "output_bucket": ""
+}
+```
+
+Send that payload to `POST /langgraph-hospital`. If `output_bucket` is omitted
+and `LANGGRAPH_OUTPUT_BUCKET` is empty, the graph returns the result inline and
+skips Google Cloud Storage export. If a bucket is provided, the graph writes a
+JSON artifact under `gs://BUCKET/langgraph-hospital/CASE_ID.json`.
+
+See `docs/langgraph-gcp-hospital.md` for the GCP bucket, runtime service
+account, and IAM checklist.
 
 ## Assistant Request
 
@@ -186,6 +212,7 @@ Vertex prediction route:
 - `POST /semantic-search`
 - `POST /rag`
 - `POST /chat`
+- `POST /langgraph-hospital`
 - `POST /assistant`
 - `POST /duplicates`
 - `POST /memory`

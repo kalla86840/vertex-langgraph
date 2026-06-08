@@ -8,7 +8,8 @@ real-time HTTPS endpoint on Cloud Run.
 
 - Python FastAPI service
 - OpenAI Responses API for final answer generation
-- AutoGen hospital, doctor, and nurse agents for `/assistant`
+- LangGraph hospital operations workflow for `/langgraph-hospital`
+- Optional Google Cloud Storage artifact export
 - Pinecone retrieval and memory
 - Cloud Run real-time endpoint with one warm minimum instance
 
@@ -22,7 +23,7 @@ For the Cloud Run GitHub Actions path, you can also run:
 ```
 
 ```bash
-gcloud services enable run.googleapis.com artifactregistry.googleapis.com iamcredentials.googleapis.com secretmanager.googleapis.com
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com iamcredentials.googleapis.com secretmanager.googleapis.com storage.googleapis.com
 ```
 
 ## Required Secrets
@@ -95,6 +96,17 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --role="roles/iam.serviceAccountUser"
 ```
 
+If `LANGGRAPH_OUTPUT_BUCKET` is set, also grant the Cloud Run runtime service
+account permission to create objects in that bucket:
+
+```bash
+BUCKET="YOUR_LANGGRAPH_OUTPUT_BUCKET"
+
+gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" \
+  --member="serviceAccount:$DEPLOY_SA" \
+  --role="roles/storage.objectCreator"
+```
+
 Workload Identity Federation must also allow the GitHub repository principal
 to impersonate that service account:
 
@@ -121,7 +133,15 @@ Real-time endpoint: https://SERVICE-REGION.a.run.app
 Health check: https://SERVICE-REGION.a.run.app/health
 ```
 
-Use `/assistant` for the AutoGen path:
+Use `/langgraph-hospital` for the LangGraph hospital operations path:
+
+```bash
+curl -X POST "$SERVICE_URL/langgraph-hospital" \
+  -H "Content-Type: application/json" \
+  -d '{"patient_summary":"Adult patient recovering after observation, stable vitals.","question":"What should the hospital team coordinate next?","top_k":4}'
+```
+
+Use `/assistant` for the legacy AutoGen path:
 
 ```bash
 curl -X POST "$SERVICE_URL/assistant" \

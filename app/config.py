@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     openai_generation_model: str = Field(default="gpt-4.1-mini", alias="OPENAI_GENERATION_MODEL")
     autogen_model: str = Field(default="gpt-4.1-mini", alias="AUTOGEN_MODEL")
     autogen_temperature: float = Field(default=0, ge=0, le=2, alias="AUTOGEN_TEMPERATURE")
+    langgraph_model: str = Field(default="gpt-4.1-mini", alias="LANGGRAPH_MODEL")
+    langgraph_output_bucket: str = Field(default="", alias="LANGGRAPH_OUTPUT_BUCKET")
     pinecone_api_key: str = Field(default="", alias="PINECONE_API_KEY")
     pinecone_host: AnyHttpUrl = Field(
         default="https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io",

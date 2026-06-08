@@ -16,7 +16,10 @@ def test_health_uses_pinecone_defaults(monkeypatch):
     body = response.json()
     assert body["status"] == "ok"
     assert body["openai"]["autogen_model"] == "gpt-4.1-mini"
+    assert body["openai"]["langgraph_model"] == "gpt-4.1-mini"
     assert body["agents"] == ["hospital_agent", "doctor_agent", "nurse_agent"]
+    assert body["langgraph"]["hospital_ops"] is True
+    assert body["langgraph"]["output_bucket_configured"] is False
     assert body["pinecone"]["index"] == "news-demo"
     assert body["pinecone"]["namespace"] == "news"
     assert body["pinecone"]["host"] == "https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io/"
@@ -550,6 +553,85 @@ def test_assistant_returns_agent_synthesis(monkeypatch):
     body = response.json()
     assert body["answer"] == "assistant synthesis [Source 1]"
     assert body["agents"][0]["agent"] == "hospital_agent"
+
+
+def test_langgraph_hospital_returns_standard_case_without_bucket(monkeypatch):
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("PINECONE_API_KEY", "test-key")
+
+    monkeypatch.setattr(
+        "app.main.run_hospital_ops_graph",
+        lambda **kwargs: {
+            "case_id": kwargs["case_id"],
+            "urgency": "standard_review",
+            "answer": "Use routine discharge planning with medication reconciliation. [Source 1]",
+            "care_team_notes": {"hospital_ops": "Standard path"},
+            "sources": [{"title": "Discharge Checklist"}],
+            "artifact": {"status": "skipped", "reason": "No output bucket was provided."},
+            "matches": [],
+            "graph_principles": [
+                "Typed shared state carries the case through each node.",
+                "Nodes isolate each workflow step.",
+                "Conditional routing sends urgent cases down a different operations path.",
+            ],
+        },
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/langgraph-hospital",
+        json={
+            "case_id": "case-demo",
+            "patient_summary": "Adult patient recovering after observation, stable vitals.",
+            "question": "What should the hospital team coordinate next?",
+            "top_k": 2,
+        },
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["case_id"] == "case-demo"
+    assert body["urgency"] == "standard_review"
+    assert body["artifact"] == {"status": "skipped", "reason": "No output bucket was provided."}
+    assert body["sources"][0]["title"] == "Discharge Checklist"
+    assert "Conditional routing" in body["graph_principles"][2]
+
+
+def test_langgraph_hospital_routes_urgent_case(monkeypatch):
+    from app.config import get_settings
+
+    get_settings.cache_clear()
+    monkeypatch.setenv("OPENAI_API_KEY", "test-key")
+    monkeypatch.setenv("PINECONE_API_KEY", "test-key")
+
+    monkeypatch.setattr(
+        "app.main.run_hospital_ops_graph",
+        lambda **kwargs: {
+            "case_id": "case-urgent",
+            "urgency": "urgent_review",
+            "answer": "Escalate now.",
+            "care_team_notes": {},
+            "sources": [],
+            "artifact": {"status": "skipped"},
+            "matches": [],
+            "graph_principles": [],
+        },
+    )
+
+    client = TestClient(app)
+    response = client.post(
+        "/langgraph-hospital",
+        json={
+            "patient_summary": "Patient reports chest pain and shortness of breath.",
+            "question": "What operations route should be used?",
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["urgency"] == "urgent_review"
 
 
 def test_run_assistant_prefers_autogen_agents(monkeypatch):

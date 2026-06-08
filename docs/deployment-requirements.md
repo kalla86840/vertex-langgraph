@@ -21,7 +21,8 @@ gcloud services enable \
   artifactregistry.googleapis.com \
   aiplatform.googleapis.com \
   secretmanager.googleapis.com \
-  iamcredentials.googleapis.com
+  iamcredentials.googleapis.com \
+  storage.googleapis.com
 ```
 
 ## Required Secrets
@@ -70,6 +71,18 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 gcloud projects add-iam-policy-binding "$PROJECT_ID" \
   --member="serviceAccount:$BUILD_SA" \
   --role="roles/secretmanager.secretAccessor"
+```
+
+If the LangGraph hospital workflow writes artifacts to a GCS bucket, grant the
+runtime service account object creation access on that bucket:
+
+```bash
+BUCKET="YOUR_LANGGRAPH_OUTPUT_BUCKET"
+RUNTIME_SA="YOUR_RUNTIME_SERVICE_ACCOUNT@YOUR_GCP_PROJECT_ID.iam.gserviceaccount.com"
+
+gcloud storage buckets add-iam-policy-binding "gs://$BUCKET" \
+  --member="serviceAccount:$RUNTIME_SA" \
+  --role="roles/storage.objectCreator"
 ```
 
 Run the Vertex real-time endpoint pipeline:
@@ -178,8 +191,10 @@ PINECONE_NAMESPACE
 OPENAI_EMBEDDING_MODEL
 OPENAI_EMBEDDING_DIMENSIONS
 OPENAI_GENERATION_MODEL
-CREWAI_LLM_MODEL
-CREWAI_VERBOSE
+AUTOGEN_MODEL
+AUTOGEN_TEMPERATURE
+LANGGRAPH_MODEL
+LANGGRAPH_OUTPUT_BUCKET
 ```
 
 The pipeline supplies these values from `cloudbuild.yaml`, the GitHub Actions

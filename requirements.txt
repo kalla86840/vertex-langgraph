@@ -3,7 +3,7 @@ uvicorn[standard]==0.34.0
 pinecone==5.4.2
 pydantic-settings==2.7.1
 openai>=1.99.0
-autogen-agentchat>=0.4.0
-autogen-ext[openai]>=0.4.0
+langgraph==0.2.60
+google-cloud-storage==2.18.2
 pytest==8.3.4
 httpx==0.28.1

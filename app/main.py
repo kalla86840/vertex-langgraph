@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field, field_validator, model_validator
 from app.assistant import run_assistant
 from app.config import Settings, get_settings
 from app.embeddings import embed_text
+from app.langgraph_hospital import run_hospital_ops_graph
 from app.memory import recall, remember
 from app.pinecone_client import get_index
 from app.rag import generate_answer
@@ -62,6 +63,15 @@ class SemanticSearchRequest(BaseModel):
     namespace: str | None = None
 
 
+class HospitalLangGraphRequest(BaseModel):
+    patient_summary: str = Field(..., min_length=1)
+    question: str = Field(..., min_length=1)
+    top_k: int = Field(default=4, ge=1, le=25)
+    namespace: str | None = None
+    output_bucket: str | None = Field(default=None, min_length=3)
+    case_id: str | None = Field(default=None, min_length=1)
+
+
 class MemoryWriteRequest(BaseModel):
     content: str = Field(..., min_length=1)
     user_id: str = Field(default="default", min_length=1)
@@ -103,8 +113,13 @@ def health(settings: Settings = Depends(get_settings)) -> dict[str, Any]:
             "embedding_dimensions": settings.openai_embedding_dimensions,
             "generation_model": settings.openai_generation_model,
             "autogen_model": settings.autogen_model,
+            "langgraph_model": settings.langgraph_model,
         },
         "agents": ["hospital_agent", "doctor_agent", "nurse_agent"],
+        "langgraph": {
+            "hospital_ops": True,
+            "output_bucket_configured": bool(settings.langgraph_output_bucket),
+        },
         "pinecone": {
             "index": settings.pinecone_index,
             "namespace": settings.pinecone_namespace,
@@ -286,6 +301,36 @@ def chat(
     settings: Settings = Depends(get_settings),
 ) -> dict[str, Any]:
     return rag_pinecone(request=request, settings=settings)
+
+
+@app.post("/langgraph-hospital")
+def langgraph_hospital(
+    request: HospitalLangGraphRequest,
+    settings: Settings = Depends(get_settings),
+) -> dict[str, Any]:
+    def retriever(text: str, top_k: int, namespace: str | None) -> list[dict[str, Any]]:
+        search_request = QueryRequest(
+            text=text,
+            top_k=top_k,
+            namespace=namespace,
+            include_metadata=True,
+            include_values=False,
+        )
+        return query_pinecone(request=search_request, settings=settings).get("matches", [])
+
+    try:
+        return run_hospital_ops_graph(
+            settings=settings,
+            patient_summary=request.patient_summary,
+            question=request.question,
+            top_k=request.top_k,
+            namespace=request.namespace,
+            output_bucket=request.output_bucket,
+            case_id=request.case_id,
+            retriever=retriever,
+        )
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"LangGraph hospital workflow failed: {exc}") from exc
 
 
 @app.post("/assistant")
