@@ -1,11 +1,11 @@
 # Google Cloud IAM Permissions
 
 This project deploys a custom container to a real-time Vertex AI endpoint named
-`gcp-crewai`.
+`gcp-langgraph-endpoint`.
 
 For the complete copy/paste setup covering APIs, Secret Manager, Cloud Build,
-GitHub Actions OIDC, Cloud Run, and endpoint callers, see
-`docs/deployment-requirements.md`.
+GitHub Actions OIDC, Cloud Run, LangGraph bucket exports, and endpoint callers,
+see `docs/gcp-langgraph-permissions.md` and `docs/deployment-requirements.md`.
 
 ## Cloud Build Deployment
 
@@ -74,6 +74,9 @@ roles/secretmanager.secretAccessor
 roles/iam.serviceAccountUser
 roles/iam.workloadIdentityUser on the service account IAM policy for the GitHub OIDC principal
 ```
+
+If `LANGGRAPH_OUTPUT_BUCKET` is configured, the runtime service account also
+needs bucket-level `roles/storage.objectCreator`.
 
 ## Endpoint Prediction
 

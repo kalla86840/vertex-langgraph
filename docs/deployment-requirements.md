@@ -1,6 +1,6 @@
 # Deployment Requirements
 
-Use this checklist before running the GCP CrewAI real-time endpoint pipelines.
+Use this checklist before running the GCP LangGraph real-time endpoint pipelines.
 
 ## Required Local Tools
 
@@ -42,7 +42,7 @@ echo -n "YOUR_PINECONE_API_KEY" | gcloud secrets versions add PINECONE_API_KEY -
 ## Cloud Build to Vertex AI Permissions
 
 `cloudbuild.yaml` builds the image, pushes it to Artifact Registry, uploads a
-Vertex AI model, creates or reuses the `gcp-crewai` endpoint, and
+Vertex AI model, creates or reuses the `gcp-langgraph-endpoint` endpoint, and
 deploys the model for online prediction.
 
 PowerShell helper:
@@ -107,7 +107,7 @@ PROJECT_ID="YOUR_GCP_PROJECT_ID"
 PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
 REGION="us-central1"
 REPO_OWNER="kalla86840"
-REPO_NAME="gcpcrewai"
+REPO_NAME="vertex-langgraph"
 POOL_ID="github-pool"
 PROVIDER_ID="github-provider"
 DEPLOY_SA="github-actions-deployer@$PROJECT_ID.iam.gserviceaccount.com"

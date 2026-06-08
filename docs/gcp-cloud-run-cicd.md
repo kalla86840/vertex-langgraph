@@ -114,7 +114,7 @@ to impersonate that service account:
 PROJECT_ID="YOUR_PROJECT_ID"
 PROJECT_NUMBER="$(gcloud projects describe "$PROJECT_ID" --format='value(projectNumber)')"
 DEPLOY_SA="github-actions-deployer@$PROJECT_ID.iam.gserviceaccount.com"
-REPO="kalla86840/gcpautogen"
+REPO="kalla86840/vertex-langgraph"
 
 gcloud iam service-accounts add-iam-policy-binding "$DEPLOY_SA" \
   --project="$PROJECT_ID" \
@@ -139,20 +139,4 @@ Use `/langgraph-hospital` for the LangGraph hospital operations path:
 curl -X POST "$SERVICE_URL/langgraph-hospital" \
   -H "Content-Type: application/json" \
   -d '{"patient_summary":"Adult patient recovering after observation, stable vitals.","question":"What should the hospital team coordinate next?","top_k":4}'
-```
-
-Use `/assistant` for the legacy AutoGen path:
-
-```bash
-curl -X POST "$SERVICE_URL/assistant" \
-  -H "Content-Type: application/json" \
-  -d '{"question":"Summarize the retrieved guidance and cite sources.","agents":["hospital_agent","doctor_agent","nurse_agent"],"top_k":5}'
-```
-
-The same assistant can be called through a Vertex-style prediction body:
-
-```bash
-curl -X POST "$SERVICE_URL/predict" \
-  -H "Content-Type: application/json" \
-  -d '{"instances":[{"mode":"assistant","question":"Summarize the retrieved guidance and cite sources.","agents":["hospital_agent","doctor_agent","nurse_agent"],"top_k":5}]}'
 ```

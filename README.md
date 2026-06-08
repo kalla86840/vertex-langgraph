@@ -13,7 +13,6 @@ and memory.
 - `/langgraph-hospital` route with a simple LangGraph hospital operations flow
 - optional `gs://` JSON artifact export for LangGraph results
 - `/chat` route for a grounded chatbot
-- `/assistant` route with AutoGen hospital, doctor, and nurse agents
 - durable Pinecone conversation memory routes
 - duplicate detection, fetch, and Vertex online prediction routes
 - GitHub Actions CI/CD to Artifact Registry and a Cloud Run real-time endpoint
@@ -24,14 +23,13 @@ and memory.
 This repo includes two Google CI/CD paths:
 
 - `cloudbuild.yaml` builds the Python container, uploads it as a Vertex AI
-  model, creates or reuses the `gcp-crewai` endpoint, and deploys the
+  model, creates or reuses the `gcp-langgraph-endpoint` endpoint, and deploys the
   model for real-time online prediction at `/predict`.
 - `.github/workflows/gcp-cloud-run-cicd.yml` builds the same API and deploys a
   warm Cloud Run real-time HTTPS endpoint.
 
-Both paths run tests, build the container, use OpenAI and Pinecone secrets from
-Google Secret Manager, and configure the AutoGen model used by the hospital,
-doctor, and nurse agents.
+Both paths run tests, build the container, and use OpenAI and Pinecone secrets
+from Google Secret Manager.
 
 ## GitHub Actions GCP Cloud Run CI/CD
 
@@ -42,7 +40,7 @@ OpenAI and Pinecone keys, and prints the live HTTPS endpoint URL.
 
 See `docs/deployment-requirements.md` for the full permissions checklist. See
 `docs/gcp-cloud-run-cicd.md` for Workload Identity Federation, GitHub secrets,
-IAM roles, and a sample `/assistant` request. See
+IAM roles, and a sample `/langgraph-hospital` request. See
 `docs/github-repo-permissions.md` for the repository Actions permissions and
 required secrets. A setup helper is available at
 `scripts/setup-gcp-cloud-run-permissions.ps1`.
@@ -66,7 +64,7 @@ gcloud builds submit --config cloudbuild.yaml
 
 The build tests the app, builds the container, pushes it to Artifact Registry,
 uploads a Vertex model, creates or reuses the endpoint, and deploys the model.
-The default online endpoint name is `gcp-crewai`.
+The default online endpoint name is `gcp-langgraph-endpoint`.
 
 ## Required Google Cloud IAM
 
@@ -108,9 +106,9 @@ gcloud projects add-iam-policy-binding "$PROJECT_ID" \
 For a future webpage backend, grant the same role to the backend service
 account instead of a user.
 
-The complete Cloud Build, GitHub Actions OIDC, Cloud Run, and endpoint caller
-commands are kept in `docs/deployment-requirements.md` and
-`docs/gcp-iam-permissions.md` for quick reuse.
+The complete Cloud Build, GitHub Actions OIDC, Cloud Run, LangGraph bucket, and
+endpoint caller commands are kept in `docs/gcp-langgraph-permissions.md`,
+`docs/deployment-requirements.md`, and `docs/gcp-iam-permissions.md`.
 
 ## Local Development
 
@@ -176,33 +174,6 @@ JSON artifact under `gs://BUCKET/langgraph-hospital/CASE_ID.json`.
 See `docs/langgraph-gcp-hospital.md` for the GCP bucket, runtime service
 account, and IAM checklist.
 
-## Assistant Request
-
-```json
-{
-  "question": "Summarize the retrieved guidance and flag important caveats.",
-  "mode": "assistant",
-  "agents": ["hospital_agent", "doctor_agent", "nurse_agent"],
-  "top_k": 5,
-  "namespace": "news"
-}
-```
-
-Send that payload to `POST /assistant` for the AutoGen agent path, or wrap it in `instances` for the
-Vertex prediction route:
-
-```json
-{
-  "instances": [
-    {
-      "mode": "assistant",
-      "question": "Summarize the retrieved guidance.",
-      "top_k": 5
-    }
-  ]
-}
-```
-
 ## Routes
 
 - `GET /health`
@@ -213,7 +184,6 @@ Vertex prediction route:
 - `POST /rag`
 - `POST /chat`
 - `POST /langgraph-hospital`
-- `POST /assistant`
 - `POST /duplicates`
 - `POST /memory`
 - `POST /memory/search`
@@ -223,10 +193,3 @@ Configuration defaults live in `config/settings.yaml`, Cloud Build deployment
 settings live in `cloudbuild.yaml`, and environment examples live in
 `.env.example`.
 
-## AWS CodePipeline CI/CD
-
-For an AWS-managed CI/CD pipeline that deploys this container to a real-time
-GCP Vertex AI endpoint, see `docs/aws-codepipeline-vertex.md`. The stack uses
-GitHub source from `kalla86840/vertex-mcp-ops`, AWS CodeBuild for tests and
-container build, Google Artifact Registry for the image, and Vertex AI Endpoint
-for online inference.

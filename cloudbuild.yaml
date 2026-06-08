@@ -2,7 +2,7 @@ substitutions:
   _REGION: us-central1
   _ARTIFACT_REPOSITORY: vertex-pinecone
   _IMAGE_NAME: vertex-pinecone-mcp
-  _VERTEX_ENDPOINT_NAME: gcp-crewai
+  _VERTEX_ENDPOINT_NAME: gcp-langgraph-endpoint
   _VERTEX_MODEL_NAME: vertex-pinecone-mcp-model
   _PINECONE_HOST: https://news-demo-4fe9eo0.svc.aped-4627-b74a.pinecone.io
   _PINECONE_INDEX: news-demo

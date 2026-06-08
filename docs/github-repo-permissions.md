@@ -58,7 +58,7 @@ roles/iam.serviceAccountUser
 ```
 
 It also needs `roles/iam.workloadIdentityUser` on the service account IAM
-policy for the `kalla86840/gcpautogen` repository principal.
+policy for the `kalla86840/vertex-langgraph` repository principal.
 
 ## Setup Helper
 

@@ -6,13 +6,16 @@ param(
     [string]$Repository = "kalla86840/vertex-langgraph",
     [string]$ServiceAccountName = "github-actions-deployer",
     [string]$PoolId = "github-pool",
-    [string]$ProviderId = "github-provider"
+    [string]$ProviderId = "github-provider",
+    [string]$LangGraphOutputBucket = "",
+    [string]$CallerMember = ""
 )
 
 $ErrorActionPreference = "Stop"
 
 $ServiceAccountEmail = "$ServiceAccountName@$ProjectId.iam.gserviceaccount.com"
 $ProjectNumber = gcloud projects describe $ProjectId --format="value(projectNumber)"
+$CloudBuildServiceAccount = "$ProjectNumber@cloudbuild.gserviceaccount.com"
 $ProviderResource = "projects/$ProjectNumber/locations/global/workloadIdentityPools/$PoolId/providers/$ProviderId"
 
 gcloud config set project $ProjectId
@@ -23,26 +26,50 @@ gcloud services enable `
     artifactregistry.googleapis.com `
     aiplatform.googleapis.com `
     iamcredentials.googleapis.com `
-    secretmanager.googleapis.com
+    secretmanager.googleapis.com `
+    storage.googleapis.com
 
 gcloud iam service-accounts describe $ServiceAccountEmail --project $ProjectId 2>$null
 if ($LASTEXITCODE -ne 0) {
     gcloud iam service-accounts create $ServiceAccountName `
         --project $ProjectId `
-        --display-name "GitHub Actions Cloud Run deployer"
+        --display-name "GitHub Actions GCP LangGraph deployer"
 }
 
-$ProjectRoles = @(
+$DeployRoles = @(
     "roles/run.admin",
     "roles/artifactregistry.admin",
     "roles/secretmanager.secretAccessor",
     "roles/iam.serviceAccountUser"
 )
 
-foreach ($Role in $ProjectRoles) {
+foreach ($Role in $DeployRoles) {
     gcloud projects add-iam-policy-binding $ProjectId `
         --member "serviceAccount:$ServiceAccountEmail" `
         --role $Role
+}
+
+$CloudBuildRoles = @(
+    "roles/cloudbuild.builds.builder",
+    "roles/artifactregistry.admin",
+    "roles/aiplatform.admin",
+    "roles/secretmanager.secretAccessor"
+)
+
+foreach ($Role in $CloudBuildRoles) {
+    gcloud projects add-iam-policy-binding $ProjectId `
+        --member "serviceAccount:$CloudBuildServiceAccount" `
+        --role $Role
+}
+
+if ($LangGraphOutputBucket) {
+    gcloud storage buckets add-iam-policy-binding "gs://$LangGraphOutputBucket" `
+        --member "serviceAccount:$ServiceAccountEmail" `
+        --role "roles/storage.objectCreator"
+
+    gcloud storage buckets add-iam-policy-binding "gs://$LangGraphOutputBucket" `
+        --member "serviceAccount:$CloudBuildServiceAccount" `
+        --role "roles/storage.objectCreator"
 }
 
 gcloud iam workload-identity-pools describe $PoolId --location global --project $ProjectId 2>$null
@@ -73,12 +100,26 @@ gcloud iam service-accounts add-iam-policy-binding $ServiceAccountEmail `
     --role "roles/iam.workloadIdentityUser" `
     --member "principalSet://iam.googleapis.com/projects/$ProjectNumber/locations/global/workloadIdentityPools/$PoolId/attribute.repository/$Repository"
 
+if ($CallerMember) {
+    gcloud projects add-iam-policy-binding $ProjectId `
+        --member $CallerMember `
+        --role "roles/aiplatform.user"
+}
+
+Write-Host ""
+Write-Host "GCP LangGraph permissions configured."
+Write-Host ""
+Write-Host "Cloud Run deploy service account:"
+Write-Host $ServiceAccountEmail
+Write-Host ""
+Write-Host "Cloud Build service account:"
+Write-Host $CloudBuildServiceAccount
 Write-Host ""
 Write-Host "Add these GitHub repository secrets:"
 Write-Host "GCP_PROJECT_ID=$ProjectId"
 Write-Host "GCP_SERVICE_ACCOUNT=$ServiceAccountEmail"
 Write-Host "GCP_WORKLOAD_IDENTITY_PROVIDER=$ProviderResource"
 Write-Host ""
-Write-Host "Create these Google Secret Manager secrets if they do not exist:"
+Write-Host "Create or update these Secret Manager secrets:"
 Write-Host "OPENAI_API_KEY"
 Write-Host "PINECONE_API_KEY"

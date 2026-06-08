@@ -96,9 +96,9 @@ class VertexPredictRequest(BaseModel):
 
 
 app = FastAPI(
-    title="GCP AutoGen Healthcare RAG API",
+    title="GCP LangGraph Healthcare RAG API",
     version="4.0.0",
-    description="Real-time GCP endpoint for Python, OpenAI, AutoGen agents, and Pinecone RAG.",
+    description="Real-time GCP endpoint for Python, OpenAI, LangGraph workflows, and Pinecone RAG.",
 )
 
 
